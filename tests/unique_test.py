@@ -1,3 +1,5 @@
+import datetime
+
 from common import small_buffer
 
 import numpy as np
@@ -62,3 +64,25 @@ def test_unique_string_missing():
     assert'John' in result
     assert None in result
     assert 'Sally'
+
+
+def test_unique_datetime_timedelta():
+    x = [1, 2, 3, 1, 1]
+    date = [np.datetime64('2020-01-01'),
+            np.datetime64('2020-01-02'),
+            np.datetime64('2020-01-03'),
+            np.datetime64('2020-01-01'),
+            np.datetime64('2020-01-01')]
+
+    df = vaex.from_arrays(x=x, date=date)
+    df['delta'] = df.date - np.datetime64('2020-01-01')  # for creating a timedelta column
+
+    unique_date = df.unique(expression='date')
+    assert set(unique_date) == {datetime.date(2020, 1, 1),
+                                datetime.date(2020, 1, 2),
+                                datetime.date(2020, 1, 3)}
+
+    unique_delta = df.unique(expression='delta')
+    assert set(unique_delta) == {datetime.timedelta(0),
+                                 datetime.timedelta(days=1),
+                                 datetime.timedelta(days=2)}
