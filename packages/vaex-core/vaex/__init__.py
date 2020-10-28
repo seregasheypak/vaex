@@ -56,6 +56,7 @@ import logging
 import pkg_resources
 import os
 from functools import reduce
+import vaex.io
 
 try:
     from . import version
