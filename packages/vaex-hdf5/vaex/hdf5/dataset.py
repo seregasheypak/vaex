@@ -60,9 +60,10 @@ def _try_unit(unit):
 class Hdf5MemoryMapped(DatasetMemoryMapped):
     """Implements the vaex hdf5 file format"""
 
-    def __init__(self, path, write=False, fs_options={}):
+    def __init__(self, path, write=False, fs_options={}, fs=None):
         nommap = not vaex.file.memory_mappable(path)
         self.fs_options = fs_options
+        self.fs = fs
         super(Hdf5MemoryMapped, self).__init__(vaex.file.stringyfy(path), write=write, nommap=nommap)
         self._all_mmapped = True
         self._open(path)
@@ -81,7 +82,7 @@ class Hdf5MemoryMapped(DatasetMemoryMapped):
             self.file_map[self.path] = file
         else:
             mode = 'rb+' if self.write else 'rb'
-            file = vaex.file.open(self.path, mode=mode, fs_options=self.fs_options, for_arrow=False)
+            file = vaex.file.open(self.path, mode=mode, fs_options=self.fs_options, fs=self.fs, for_arrow=False)
             self.file_map[self.path] = file
         self.h5file = h5py.File(file, "r+" if self.write else "r")
 
@@ -91,6 +92,7 @@ class Hdf5MemoryMapped(DatasetMemoryMapped):
             **super().__getstate__(),
             'nommap': self.nommap,
             'fs_options': self.fs_options,
+            'fs': self.fs,
         }
 
     def __setstate__(self, state):
@@ -159,15 +161,15 @@ class Hdf5MemoryMapped(DatasetMemoryMapped):
         return Hdf5MemoryMapped(path, write=write)
 
     @classmethod
-    def quick_test(cls, path):
+    def quick_test(cls, path, fs_options={}, fs=None):
         path, options = vaex.file.split_options(path)
         return path.endswith('.hdf5') or path.endswith('.h5')
 
     @classmethod
-    def can_open(cls, path, fs_options={}, **kwargs):
-        if not cls.quick_test(path):
+    def can_open(cls, path, fs_options={}, fs=None, **kwargs):
+        if not cls.quick_test(path, fs_options=fs_options, fs=fs):
             return False
-        with vaex.file.open(path, fs_options=fs_options) as f:
+        with vaex.file.open(path, fs_options=fs_options, fs=fs) as f:
             signature = f.read(4)
             if signature != b"\x89\x48\x44\x46":
                 return False
@@ -404,8 +406,8 @@ dataset_type_map["h5vaex"] = Hdf5MemoryMapped
 class AmuseHdf5MemoryMapped(Hdf5MemoryMapped):
     """Implements reading Amuse hdf5 files `amusecode.org <http://amusecode.org/>`_"""
 
-    def __init__(self, path, write=False, fs_options={}):
-        super(AmuseHdf5MemoryMapped, self).__init__(path, write=write, fs_options=fs_options)
+    def __init__(self, path, write=False, fs_options={}, fs=None):
+        super(AmuseHdf5MemoryMapped, self).__init__(path, write=write, fs_options=fs_options, fs=fs)
 
     @classmethod
     def can_open(cls, path, *args, **kwargs):
@@ -445,7 +447,7 @@ gadget_particle_names = "gas halo disk bulge stars dm".split()
 class Hdf5MemoryMappedGadget(DatasetMemoryMapped):
     """Implements reading `Gadget2 <http://wwwmpa.mpa-garching.mpg.de/gadget/>`_ hdf5 files """
 
-    def __init__(self, path, particle_name=None, particle_type=None, fs_options={}):
+    def __init__(self, path, particle_name=None, particle_type=None, fs_options={}, fs=None):
         if "#" in path:
             path, index = path.split("#")
             index = int(index)
@@ -462,7 +464,7 @@ class Hdf5MemoryMappedGadget(DatasetMemoryMapped):
                 raise ValueError("particle name not supported: %r, expected one of %r" % (particle_name, " ".join(gadget_particle_names)))
         else:
             raise Exception("expected particle type or name as argument, or #<nr> behind path")
-        super(Hdf5MemoryMappedGadget, self).__init__(path, fs_options=fs_options)
+        super(Hdf5MemoryMappedGadget, self).__init__(path, fs_options=fs_options, fs=fs)
         self.particle_type = particle_type
         self.particle_name = particle_name
         self.name = self.name + "-" + self.particle_name
@@ -519,7 +521,7 @@ class Hdf5MemoryMappedGadget(DatasetMemoryMapped):
         # self.property_names.append(name)
 
     @classmethod
-    def can_open(cls, path, fs_options={}, *args, **kwargs):
+    def can_open(cls, path, fs_options={}, fs=None, *args, **kwargs):
         path = vaex.file.stringyfy(path)
         if len(args) == 2:
             particleName = args[0]
