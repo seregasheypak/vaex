@@ -107,7 +107,7 @@ def open(path, convert=False, shuffle=False, fs_options={}, fs=None, *args, **kw
     :param dict fs_options: Extra arguments passed to an optional file system if needed:
         * Amazon AWS S3
             * `anonymous` - access file without authentication (public files)
-            * `access_key` - AWS access key, if not provided will use the standard env vars, or the `~/.aws/credentials` file 
+            * `access_key` - AWS access key, if not provided will use the standard env vars, or the `~/.aws/credentials` file
             * `secret_key` - AWS secret key, similar to `access_key`
             * `profile` - If multiple profiles are present in `~/.aws/credentials`, pick this one instead of 'default', see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html
             * `region` - AWS Region, e.g. 'us-east-1`, will be determined automatically if not provided.
@@ -115,7 +115,7 @@ def open(path, convert=False, shuffle=False, fs_options={}, fs=None, *args, **kw
         * Google Cloud Storage
             * :py:class:`gcsfs.core.GCSFileSystem`
         In addition you can pass the boolean "cache" option.
-    :param fs: Apache Arrow FileSystem object, or FSSpec FileSystem object, if specified, fs_options should be empty.
+    :param fs: Apache Arrow FileSystem object, or FSSpec FileSystem object. If this is set, `fs_options` should be unspecified.
     :param args: extra arguments for file readers that need it
     :param kwargs: extra keyword arguments
     :return: return a DataFrame on success, otherwise None

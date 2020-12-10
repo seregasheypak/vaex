@@ -38,5 +38,5 @@ _doc_snippets['chunk_size_export'] = 'Number of rows to be written to disk in a 
 _doc_snippets['evaluate_parallel'] = 'Evaluate the (virtual) columns in parallel'
 _doc_snippets['array_type'] = 'Type of output array, possible values are None/"numpy" (ndarray), "xarray" for a xarray.DataArray, or "list" for a Python list'
 _doc_snippets['ascii'] = 'Transform only ascii characters (usually faster).'
-_doc_snippets['fs_options'] = 'see :func:`vaex.open` e.g. for S3 {"profile": "myproject"}'
-_doc_snippets['fs_options'] = 'Pass a file system object directly, see :func:`vaex.open`'
+_doc_snippets['fs_options'] = 'Extra arguments passed to an optional file system if needed. See :func:`vaex.open` e.g. for S3 {"profile": "myproject"} for more details.'
+_doc_snippets['fs'] = 'Apache Arrow or FSSpec FileSystem object. See :func:`vaex.open` for more details.'

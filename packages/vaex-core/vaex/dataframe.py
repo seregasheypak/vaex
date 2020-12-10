@@ -2334,16 +2334,19 @@ class DataFrame(object):
         r: (((x ** 2) + (y ** 2)) ** 0.5)
 
         :param str file: filename (ending in .json or .yaml)
-        :param dict fs_options: arguments to pass the the file system handler (s3fs or gcsfs)
+        :param dict fs_options: 'Extra arguments passed to an optional file system if needed. See :func:`vaex.open` e.g. for S3 {"profile": "myproject"} for more details.'
+        :param fs: 'Apache Arrow or FSSpec FileSystem object. See :func:`vaex.open` for more details.'
         """
         fs_options = fs_options or {}
         vaex.utils.write_json_or_yaml(file, self.state_get(), fs_options=fs_options, fs=fs)
 
+    @docsubst
     def state_load(self, file, use_active_range=False, fs_options=None, fs=None):
         """Load a state previously stored by :meth:`DataFrame.state_write`, see also :meth:`DataFrame.state_set`.
 
         :param str file: filename (ending in .json or .yaml)
-        :param dict fs_options: arguments to pass the the file system handler (s3fs or gcsfs)
+        :param dict fs_options: {fs_options}
+        :param fs: {fs}
         """
         state = vaex.utils.read_json_or_yaml(file, fs_options=fs_options, fs=fs)
         self.state_set(state, use_active_range=use_active_range)
@@ -5859,6 +5862,7 @@ class DataFrameLocal(DataFrame):
         :param int chunk_size: {chunk_size_export}, if supported.
         :param bool parallel: {evaluate_parallel}
         :param dict fs_options: {fs_options}
+        :param fs: {fs}
         :return:
         """
         naked_path, options = vaex.file.split_options(path)
@@ -5885,9 +5889,10 @@ class DataFrameLocal(DataFrame):
         :param int chunk_size: {chunk_size_export}
         :param bool parallel: {evaluate_parallel}
         :param bool reduce_large: If True, convert arrow large_string type to string type
+        :param dict fs_options: {fs_options}
+        :param fs: {fs}
         :param bool as_stream: Write as an Arrow stream if true, else a file.
             see also https://arrow.apache.org/docs/format/Columnar.html?highlight=arrow1#ipc-file-format
-        :param dict fs_options: {fs_options}
         :return:
         """
         progressbar = vaex.utils.progressbars(progress)
@@ -5927,6 +5932,7 @@ class DataFrameLocal(DataFrame):
         :param int chunk_size: {chunk_size_export}
         :param bool parallel: {evaluate_parallel}
         :param dict fs_options: {fs_options}
+        :param fs: {fs}
         :param **kwargs: Extra keyword arguments to be passed on to py:data:`pyarrow.parquet.ParquetWriter`.
         :return:
         """
@@ -5957,6 +5963,7 @@ class DataFrameLocal(DataFrame):
         :param int chunk_size: {chunk_size_export}
         :param bool parallel: {evaluate_parallel}
         :param dict fs_options: {fs_options}
+        :param fs: {fs}
         '''
         from uuid import uuid4
         if not _issequence(by):
@@ -6014,6 +6021,7 @@ class DataFrameLocal(DataFrame):
         :param bool parallel: {evaluate_parallel}
         :param int max_workers: Number of workers/threads to use for writing in parallel
         :param dict fs_options: {fs_options}
+        :param fs: {fs}
         """
         from .itertools import pmap, pwait, buffer, consume
         path1 = str(path).format(i=0, i1=1, i2=2)
