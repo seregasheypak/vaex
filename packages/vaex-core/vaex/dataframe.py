@@ -1995,6 +1995,10 @@ class DataFrame(object):
         from pandas import Series
         return Series({column_name:self.data_type(column_name) for column_name in self.get_column_names()})
 
+    def schema(self):
+        '''Similar to df.dtypes, but returns a dict'''
+        return {column_name:self.data_type(column_name) for column_name in self.get_column_names()}
+
     def is_masked(self, column):
         '''Return if a column is a masked (numpy.ma) column.'''
         column = _ensure_string_from_expression(column)
@@ -5868,7 +5872,7 @@ class DataFrameLocal(DataFrame):
         naked_path, options = vaex.file.split_options(path)
         fs_options = fs_options or {}
         if naked_path.endswith('.arrow'):
-            self.export_arrow(path, chunk_size=chunk_size, parallel=parallel, fs_options=fs_options, fs=fs)
+            self.export_arrow(path, progress=progress, chunk_size=chunk_size, parallel=parallel, fs_options=fs_options, fs=fs)
         elif naked_path.endswith('.hdf5'):
             self.export_hdf5(path, progress=progress, parallel=parallel)
         elif naked_path.endswith('.fits'):
@@ -6048,17 +6052,20 @@ class DataFrameLocal(DataFrame):
         progressbar(1)
 
     @docsubst
-    def export_hdf5(self, path, byteorder="=", progress=None, parallel=True):
+    def export_hdf5(self, path, byteorder="=", progress=None, chunk_size=default_chunk_size, parallel=True, column_count=1, writer_threads=0):
         """Exports the DataFrame to a vaex hdf5 file
 
         :param str path: path for file
         :param str byteorder: = for native, < for little endian and > for big endian
         :param progress: {progress}
         :param bool parallel: {evaluate_parallel}
+        :param int column_count: How many columns to evaluate and export in parallel (>1 requires fast random access, like and SSD drive).
+        :param int writer_threads: Use threads for writing or not, only useful when column_count > 1.
         :return:
         """
-        import vaex.export
-        vaex.export.export_hdf5(self, path, byteorder=byteorder, progress=progress, parallel=parallel)
+        from vaex.hdf5.writer import Writer
+        with Writer(path) as writer:
+            writer.write(self, chunk_size=chunk_size, progress=progress, column_count=column_count)
 
     @docsubst
     def export_fits(self, path, progress=None):
